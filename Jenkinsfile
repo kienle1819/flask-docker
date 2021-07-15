@@ -22,7 +22,7 @@ pipeline {
     }
 
     stage("build") {
-      agent { node {label 'develop'}}
+      agent { node {label 'master'}}
       environment {
         DOCKER_TAG="${GIT_BRANCH.tokenize('/').pop()}-${GIT_COMMIT.substring(0,7)}"
       }
@@ -35,7 +35,7 @@ pipeline {
             sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
         
         scripts {
-          if(GIT_BRANCH ==~ /.*develop.*/){
+          if(GIT_BRANCH ==~ /.*master.*/){
             sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
             sh "docker push ${DOCKER_IMAGE}:latest"
 
