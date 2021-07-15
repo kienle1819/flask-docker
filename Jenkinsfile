@@ -30,9 +30,9 @@ pipeline {
         sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} . "
         sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
         sh "docker image ls | grep ${DOCKER_IMAGE}"
-        script {
-          docker.withRegistry( '', registryCredential ) { 
-            dockerImage.push()
+        withDockerRegistry([ credentialsId: "docker-hub", url: "" ])
+        sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
+        sh "docker push ${DOCKER_IMAGE}:latest"
           }
         }
         sh "docker image rm ${DOCKER_IMAGE}:${DOCKER_TAG}"
