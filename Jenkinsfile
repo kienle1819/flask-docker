@@ -4,8 +4,6 @@ pipeline {
 
   environment {
     DOCKER_IMAGE = "kienle/flask-docker"
-    registry = "YourDockerhubAccount/YourRepository" 
-   registryCredential = 'docker-hub'        
   }
 
   stages {
@@ -22,28 +20,36 @@ pipeline {
         sh "poetry run pytest"
       }
     }
-  
-  stage('Building our image') { 
-      steps { 
-          script { 
-              dockerImage = docker.build registry + ":$BUILD_NUMBER" 
-          }
-      } 
+
+    stage("build") {
+      agent { node {label 'master'}}
+      environment {
+        DOCKER_TAG="${GIT_BRANCH.tokenize('/').pop()}-${GIT_COMMIT.substring(0,7)}"
+      }
+      steps {
+        sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} . "
+        sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
+        sh "docker image ls | grep ${DOCKER_IMAGE}"
+      }
+      stage('Deploy our image') { 
+        steps { 
+            script { 
+                docker.withRegistry( '', registryCredential ) { 
+                    dockerImage.push() 
+                }
+              } 
+            }
+          }    
+        
+      stage(clean up){
+        step{
+        sh "docker image rm ${DOCKER_IMAGE}:${DOCKER_TAG}"
+        sh "docker image rm ${DOCKER_IMAGE}:latest"
+        }
+      }  
+      }
     }
-  stage('Deploy our image') { 
-      steps { 
-          script { 
-              docker.withRegistry( '', registryCredential ) { 
-                  dockerImage.push() 
-              }
-          } 
-      }
-    } 
-  stage('Cleaning up') { 
-      steps { 
-          sh "docker rmi $registry:$BUILD_NUMBER" 
-      }
-    } 
+  }
 
   post {
     success {
@@ -53,5 +59,4 @@ pipeline {
       echo "FAILED"
     }
   }
-}
 }
