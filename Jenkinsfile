@@ -34,10 +34,10 @@ pipeline {
             sh "docker image ls | grep ${DOCKER_IMAGE}"
             sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
         
-        scripts {
-          if(GIT_BRANCH ==~/.*master.*/) {
-            sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
-            sh "docker push ${DOCKER_IMAGE}:latest"
+        // scripts {
+        //   if(GIT_BRANCH ==~/.*master.*/) {
+        //     sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
+        //     sh "docker push ${DOCKER_IMAGE}:latest"
 
           }
         }
